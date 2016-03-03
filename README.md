@@ -122,7 +122,7 @@ Let's upgrade our css to a scss file and have it import bootstrap for us.
 
 ```shell
 mv sass-bootstrap.css main.scss
-echo "@import 'boostrap/scss/boostrap';"
+echo "@import 'bootstrap/scss/bootstrap';"
 ```
 
 And the meteor hot code reload does it's thing, but **[jibbers crabst!][3] where is my boostrap**
@@ -130,6 +130,36 @@ And the meteor hot code reload does it's thing, but **[jibbers crabst!][3] where
 Ok, dude, chill out. npm modules do not care about your needs. sass cares about you at least that little too.
 
 [sass](http://sass-lang.com/) is short for _sarsaparilla pre-processor for css_ and we need to encourage it to do some of that sweet pre-processing for us.
+
+**Tuck your brain in, we're gonna build us some npm run script.**
+
+First. a `build:css` script
+
+```json
+  "scripts": {
+    "start": "meteor run",
+    "test": "meteor test-app --driver-package practicalmeteor:mocha",
+    "build:css": "node-sass --include-path node_modules main.scss bundle.css"
+  }
+```
+
+```shell
+npm install --save node-sass
+```
+
+**Stand back (if you have a wireless keyboard) and run it**
+
+```shell
+$ npm run build:css
+
+> sass-bootstrap4@0.0.1 build:css /Users/oli/Code/tableflip/meteor-sass-bootstrap4
+> node-sass --include-path node_modules main.scss bundle.css
+
+Rendering Complete, saving .css file...
+Wrote CSS to /Users/oli/Code/tableflip/meteor-sass-bootstrap4/bundle.css
+```
+
+
 
 
 ---
