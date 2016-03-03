@@ -1,0 +1,14 @@
+{
+  "name": "sass-bootstrap4",
+  "private": true,
+  "version": "0.0.1",
+  "main": "sass-bootstrap4.js",
+  "scripts": {
+    "start": "meteor run",
+    "test": "meteor test-app --driver-package practicalmeteor:mocha"
+  },
+  "dependencies": {
+    "bootstrap": "^4.0.0-alpha.2",
+    "meteor-node-stubs": "~0.2.0"
+  }
+}
