@@ -4,9 +4,11 @@
   "version": "0.0.1",
   "main": "sass-bootstrap4.js",
   "scripts": {
-    "start": "meteor run",
-    "test": "meteor test-app --driver-package practicalmeteor:mocha",
-    "build:css": "node-sass --include-path node_modules main.scss bundle.css"
+  "start": "npm-run-all build:* --parallel watch:* meteor",
+  "meteor": "meteor run",
+  "test": "meteor test-app --driver-package practicalmeteor:mocha",
+  "build:css": "node-sass --include-path node_modules main.scss bundle.css",
+  "watch:css": "nodemon -e scss -x npm run build:css"
   },
   "dependencies": {
     "bootstrap": "^4.0.0-alpha.2",

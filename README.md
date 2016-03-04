@@ -147,7 +147,7 @@ First. a `build:css` script
 npm install --save node-sass
 ```
 
-**Stand back (if you have a wireless keyboard) and run it**
+Open a new terminal, **stand back (if you have a wireless keyboard), and run it**
 
 ```shell
 $ npm run build:css
@@ -159,7 +159,75 @@ Rendering Complete, saving .css file...
 Wrote CSS to /Users/oli/Code/tableflip/meteor-sass-bootstrap4/bundle.css
 ```
 
+A quick look at the browser shows modest improvement in eye glory, but the
+leathery, tell-tale font-stack of bootstrap is clearly evident.
 
+![][4]
+
+Now we have a build artefact... a `bundle.css` that is derived from our `main.scss`.
+As a vanilla css file it gets picked up by the meteor build pipeline, versioned and hot-reloaded.
+
+But the hot-reload isn't so hot. If we edit the scss file nothing happens.
+
+> Once you have npm run sripts, every problem looks like an npm run script problem.
+_@olizilla_ 3rd March 2016
+
+---
+
+**Get Moar tools!**
+
+```shell
+npm install --save-dev npm-run-all nodemon
+```
+
+- nodemon by @rem - re-run things on change
+- npm-run-all by @mysticatea - for running many things
+
+Now whisper the incantations:
+
+```json
+"scripts": {
+  "start": "meteor run",
+  "test": "meteor test-app --driver-package practicalmeteor:mocha",
+  "build:css": "node-sass --include-path node_modules main.scss bundle.css",
+  "watch:css": "nodemon -e scss -x npm run build:css"
+}
+```
+
+Where:
+- `nodemon` ask `nodemon` to watch for changes in the current directory...
+- `-e scss` in files with the `scss` extension...
+- `-x npm run build:css` and execute `build:css`
+
+and  `watch:css` is now script alias which we can call like:
+
+```shell
+npm run watch:css
+```
+
+to auto-build the sass on change with _just_ a
+
+```
+npm build:css
+npm start
+npm watch:css
+```
+
+...This is sub-optimal. Let's iterate.
+
+---
+
+Go go gadget `npm-run-all`
+
+```json
+"scripts": {
+  "start": "npm-run-all build:* --parallel watch:* meteor",
+  "meteor": "meteor run",
+  "test": "meteor test-app --driver-package practicalmeteor:mocha",
+  "build:css": "node-sass --include-path node_modules main.scss bundle.css",
+  "watch:css": "nodemon -w client -e scss -x npm run build:css"
+}
+```
 
 
 ---
@@ -170,3 +238,4 @@ A [(╯°□°）╯︵TABLEFLIP](https://tableflip.io) side project for [● Me
 [1]:https://cloud.githubusercontent.com/assets/58871/13501269/e2403c16-e15d-11e5-9ca0-ae5a73bb47d3.png
 [2]:http://36.media.tumblr.com/1e63026e4211a6e7711fe95d5ff6b13e/tumblr_inline_nn489p271Z1t68bpr_500.png
 [3]:http://wp.production.patheos.com/blogs/friendlyatheist/files/im/qiaVKwS.png
+[4]:https://cloud.githubusercontent.com/assets/58871/13508865/b98fe38e-e180-11e5-8f8f-3ac925f5784c.png
