@@ -207,7 +207,7 @@ Where:
 - `-x npm run build:css`: execute `build:css` on change.
 
 
-noe we can run the project and auto-build the css on change with _just_ a
+now we can run the project and auto-build the css on change with _just_ a
 
 ```
 npm build:css
