@@ -1,14 +1,36 @@
-# meteor-sass-bootstrap4
+# Meteor 1.3 + sass + bootstrap4: the npm way.
 
-**Meteor 1.3 + sass + bootstrap4 the npm way.**
+ A [(╯°□°）╯︵TABLEFLIP](https://tableflip.io) side project for [● Meteor London](http://www.meetup.com/Meteor-London/)
 
-A [(╯°□°）╯︵TABLEFLIP](https://tableflip.io) side project for [● Meteor London](http://www.meetup.com/Meteor-London/)
+## TL;DR
 
-This project was created by running `meteor create`:
+**Meteor 1.3 has first class npm support. [npm run scripts][5] are a simple way to add build tools to your meteor work flow.**
+
+## Why?
+
+Meteor core supports for pre-compiling less & stylus. Sass support is less up to date. Boostrap 4 has moved to sass. At the time of writing the Meteor scss package doesn't support importing additional scss files from npm packages or meteor packages. If you want a nice setup where you can customise the core boostrap 4 variables and have it re-build on demand, you're either going to have to upgrade the meteor scss comiler (I spent a 4 hours on it and gave up) or find another way.
+
+I've found [npm run scripts][5] super helpful on other projects. Setting them up to rebuild on change is painless. More importantly, there is very little magic involved so you can fit it all in your head; reuse the pattern to add other build steps; and use the knowledge on non-meteor projects too.
+
+## How?
+
+Meteor already knows how to compile, minify, version and hot reload your css files, so that's all covered. For this quest, all we need is
+
+- Access to the boostrap source scss files, in a way we can import them into our local scss file.
+- A **build** step that'll run the sass comiler to create the css.
+- A **watch** step that'll re-build the css when we chnage the scss, so dev is stil fun.
+- For bonus marks we'll add [autoprefixer][6], to add vendor-specific css prefixes for us.
+- And pull in the bootstrap js files, for the advanced interactions like drop-downs
+
+**Adventure time!** You can follow along or just check the source code in the repo to skip ahead.
+
+This project was created by running `meteor create`
 
 ```shell
 meteor create --release 1.3-beta.12 sass-boostrap4
 ```
+
+<small>The `--release 1.3-beta.12` is used to use the latest 1.3 release before it's out of beta. </small>
 
 That scaffolds out a meteor project skeleton for us:
 
@@ -40,21 +62,21 @@ New for meteor 1.3, we get an npm package.json included as standard, like so:
 }
 ```
 
-It includes some _"scripts"_ for `start` and `test` which is interesting... we'll circle back and kick them in a minute...
+It includes some scripts for `start` and `test` already which is interesting... we'll circle back to them in a minute...
 
 ---
 
-Staying on the bleeding edge is a full time job, so let's add `bootstrap4-alpha`, via npm (`v3.7.5` according to my `npm -v`)
+Staying on the bleeding edge is a full time job, so let's add `bootstrap4-alpha`, via npm (I'm using `v3.7.5` according to my `npm -v`)
 
 ```shell
-# Get all the existing deps
+# Get all the existing deps listed in the package.json
 npm install
 
-# Get bootstrap, scss and all.
+# Add bootstrap, scss files and all.
 npm install --save bootstrap@4.0.0-alpha.2
 ```
 
-Now we've got a `node_modules` directory for our npm dependecies, and in it a `bootstrap` directory filled with the latest in startup-scaffoldware:
+Now we've got a `node_modules` directory for our npm packages. In it, a `bootstrap` directory filled with the latest release
 
 ```shell
 $ tree -L 3
@@ -63,31 +85,21 @@ $ tree -L 3
 ├── node_modules
 │   ├── bootstrap
 │   │   ├── CHANGELOG.md
-│   │   ├── Gruntfile.js
 │   │   ├── LICENSE
-│   │   ├── README.md
 │   │   ├── dist
-│   │   ├── grunt
 │   │   ├── package.json
 │   │   └── scss
 ```
 
-...and because we added a `--save` flag to `npm install`, it has kindly added record of the fact that our project depends on bootstrap to our `package.json` dependencies
-
-```json
-  "dependencies": {
-    "bootstrap": "^4.0.0-alpha.2",
-    "meteor-node-stubs": "~0.2.0"
-  }
-```
-
-If we try the first of those npm run scripts with a
+Now try the `start` script from earlier
 
 ```shell
 npm start
 ```
 
-We see the familiar meteor launch sequence. _Why would you use npm start instead of just `meteor run`?_ Well, either is fine. An **npm run script** is just an alias you can configure easily, so:
+We see the familiar meteor launch sequence. _Why would you use npm start instead of just `meteor run`?_
+
+Either is fine. An **npm run script** is just an alias you can configure easily.
 
 
 ```json
@@ -97,7 +109,7 @@ We see the familiar meteor launch sequence. _Why would you use npm start instead
   }
 ```
 
-means `npm start` is an alias for `meteor run`. But check out the `test` script... that thing is remembering command line arguments for us. As soon as you need to pass a `--settings settings.json` to your app, you'll be greaful of a short cut like `npm start`
+Here, `npm start` is an alias for `meteor run`. Check out the `test` script. That thing is remembering command line arguments for us. As soon as you need to pass a `--settings settings.json` to your app, you'll find a short cut like `npm start` helpful to save a few key strokes.
 
 ```
 "scripts": {
@@ -110,30 +122,30 @@ Now the app is running, go check it out... http://localhost:3000 in your navigat
 
 ![Meteor 1.3 default app screenshot][1]
 
-Oh god. It's not exactly shiny. There is some tests though, so that's good I suppose.
-
-**Where is the boostrap hotness?**
+It's not exactly shiny. **Where is the boostrap?**
 
 Bootstrap is still all in the node_modules folder where we left it. npm modules don't care about your needs. (npm <3s you, but that's cos they have intense feels and a wombat.)
 
 ![npm wombat][2]
 
-Let's upgrade our css to a scss file and have it import bootstrap for us.
+**Tuck your brain in and put your safety goggles on. We are going to make it work.**
 
-```shell
-mv sass-bootstrap.css main.scss
-echo "@import 'bootstrap/scss/bootstrap';"
+Upgrade our css to a scss file called `main.scss`. In it, we'll override a variable, and then import the all the bootstrap styles:
+
+**main.scss**
+
+```scss
+$body-bg: hotpink;
+@import 'bootstrap/scss/bootstrap';
 ```
 
-And the meteor hot code reload does it's thing, but **[jibbers crabst!][3] where is my boostrap**
+Install the npm dependency `node-sass`, so we can call on it to compile things.
 
-Ok, dude, chill out. npm modules do not care about your needs. sass cares about you at least that little too.
+```shell
+npm install --save node-sass
+```
 
-[sass](http://sass-lang.com/) is short for _sarsaparilla pre-processor for css_ and we need to encourage it to do some of that sweet pre-processing for us.
-
-**Tuck your brain in, we're gonna build us some npm run script.**
-
-First. a `build:css` script
+and in `package.json` add a `build:css` script:
 
 ```json
   "scripts": {
@@ -141,10 +153,6 @@ First. a `build:css` script
     "test": "meteor test-app --driver-package practicalmeteor:mocha",
     "build:css": "node-sass --include-path node_modules main.scss bundle.css"
   }
-```
-
-```shell
-npm install --save node-sass
 ```
 
 Open a new terminal, **stand back (if you have a wireless keyboard), and run it**
@@ -159,13 +167,11 @@ Rendering Complete, saving .css file...
 Wrote CSS to /Users/oli/Code/tableflip/meteor-sass-bootstrap4/bundle.css
 ```
 
-A quick look at the browser shows modest improvement in eye glory, but the
-leathery, tell-tale font-stack of bootstrap is clearly evident.
-
 ![][4]
 
-Now we have a build artefact... a `bundle.css` that is derived from our `main.scss`.
-As a vanilla css file it gets picked up by the meteor build pipeline, versioned and hot-reloaded.
+:tada: SUCCESS! The tell-tale bootstrap font-stack is evident.
+
+Now we have a build artefact... a `bundle.css` that is derived from our `main.scss`. As a vanilla css file it gets picked up by the meteor build pipeline, versioned and hot-reloaded.
 
 But the hot-reload isn't so hot. If we edit the scss file nothing happens.
 
@@ -239,3 +245,4 @@ A [(╯°□°）╯︵TABLEFLIP](https://tableflip.io) side project for [● Me
 [2]:http://36.media.tumblr.com/1e63026e4211a6e7711fe95d5ff6b13e/tumblr_inline_nn489p271Z1t68bpr_500.png
 [3]:http://wp.production.patheos.com/blogs/friendlyatheist/files/im/qiaVKwS.png
 [4]:https://cloud.githubusercontent.com/assets/58871/13508865/b98fe38e-e180-11e5-8f8f-3ac925f5784c.png
+[5]:http://blog.npmjs.org/post/118810260230/building-a-simple-command-line-tool-with-npm
