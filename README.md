@@ -221,6 +221,10 @@ npm watch:css
 
 When you want to run multiple steps sequentially, or in parallel from a single script, [`npm-run-all`][7] is your friend
 
+```sh
+npm install --save-dev npm-run-all
+```
+
 ```json
 "scripts": {
   "start": "npm-run-all build:* --parallel watch:* meteor",
